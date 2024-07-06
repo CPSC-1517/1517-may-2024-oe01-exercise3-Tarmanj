@@ -1,0 +1,38 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+         BookWebApp
+        <MudDiv Style="padding:10px;">
+            <MudImage Src="img/books.png" Width="50" Height="40" />
+        </MudDiv>
+        <MudSpacer />
+
+        <MudLink Href="/About" Color="Color.Inherit">About</MudLink>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+    <MudAppBar Bottom="true" Fixed="true" Class="align-center">
+        <MudText Typo="Typo.body1" Align="Align.Center">© Copyright Educational Purposes: Tarman Jawanda, E02, Tina Caron</MudText>
+    </MudAppBar>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
