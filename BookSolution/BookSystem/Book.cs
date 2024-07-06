@@ -110,7 +110,7 @@ namespace BookSystem
             }
             if(Reviews.Any(x => x.Reviewer.Equals(review.Reviewer)))
             {
-                throw new ArgumentException($"{review.Reviewer.ReviewerName} already has review this book and cannot add another review.");
+                throw new ArgumentException($"{review.Reviewer} already has review this book and cannot add another review.");
             }
             Reviews.Add(review);
         }

@@ -1,0 +1,86 @@
+﻿@page "/ReviewReport"
+@using BookSystem
+@using MudBlazor;
+@attribute [StreamRendering]
+
+<PageTitle>Review Report</PageTitle>
+
+<h1>Review Report</h1>
+
+@if (reviews == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Reviewer</th>
+                <th>Rating</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var review in reviews)
+            {
+                <tr>
+                    <td>@review.Title</td>
+                    <td>@review.Author</td>
+                    <td>@review.Reviewer</td>
+                    <td>@review.Rating</td>
+                    <td>@review.Comment</td>
+                </tr>
+
+                if (reviews.Count == 0)
+                {
+                    <p>No Review found.</p>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Review> reviews = new List<Review>();
+    private List<string> errorMessages = [];
+    private string errortext = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        errorMessages.Clear();
+        errortext = "";
+
+        try
+        {
+            var file = "wwwroot/Data/TestData.csv";
+            using (var reader = new StreamReader(file))
+            {
+                reviews = new List<Review>();
+
+                while (!reader.EndOfStream)
+                {
+                    var line = await reader.ReadLineAsync();
+                    reviews.Add(Review.Parse(line));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessages.Add(GetInnerException(e).Message);
+            foreach (string text in errorMessages)
+            {
+                errortext += $"DATA ERROR: '{text}' \n LOADING FAILED";
+            }
+        }
+    }
+
+    private Exception GetInnerException(Exception e)
+    {
+        while (e.InnerException != null)
+            e = e.InnerException;
+        return e;
+    }
+}

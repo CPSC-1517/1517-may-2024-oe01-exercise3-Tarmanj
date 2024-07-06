@@ -1,0 +1,171 @@
+﻿@page "/ReviewCollection"
+@using MudBlazor
+@using BookSystem
+@using System.Text.RegularExpressions
+@inject IJSRuntime JSRunTime
+@inject IDialogService DialogService
+
+<PageTitle>Review Collections</PageTitle>
+
+<MudContainer Style="display: flex; justify-content: center; padding-top: 10px;">
+    <MudText Typo="Typo.h1">Review Collection</MudText>
+</MudContainer>
+
+<MudForm Class="mt-8" @ref="form" @bind-Errors="errors">
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudCard Outlined="true">
+                <MudCardContent>
+                    <MudTextField Variant="Variant.Outlined"
+                                  T="string"
+                                  Label="ISBN"
+                                  @bind-Value="@isbn"
+                                  Immediate="true"
+                                  Required
+                                  RequiredError="ISBN is required." />
+                    <MudTextField Variant="Variant.Outlined"
+                                  T="string"
+                                  Label="Title"
+                                  @bind-Value="@title"
+                                  Immediate="true"
+                                  Required
+                                  RequiredError="Title is required." />
+                    <MudSelect T="string"
+                               Label="Author"
+                               Variant="Variant.Outlined"
+                               @bind-Value="@author"
+                               Immediate="true"
+                               Required
+                               RequiredError="Author is required.">
+                        @foreach (string value in authorList.Distinct())
+                        {
+                            <MudSelectItem Value="value" />
+                        }
+                    </MudSelect>
+                    <MudTextField Variant="Variant.Outlined"
+                                  T="string"
+                                  Label="Reviewer"
+                                  @bind-Value="@reviewer"
+                                  Immediate="true"
+                                  Required
+                                  RequiredError="Reviewer is required." />
+                    <MudSelect Variant="Variant.Outlined"
+                               Label="Rating"
+                               @bind-Value="@rating"
+                               Immediate="true"
+                               Required
+                               RequiredError="Rating is required.">
+                        @foreach (RatingType rating in Enum.GetValues(typeof(RatingType)))
+                        {
+                            <MudSelectItem Value="@rating" Text="@rating.ToString()" />
+                        }
+                    </MudSelect>
+
+                    <MudTextField Variant="Variant.Outlined"
+                                  T="string"
+                                  Label="Comment"
+                                  @bind-Value="@comment"
+                                  Immediate="true"
+                                  Required
+                                  Lines="5"
+                                  RequiredError="Comment is required." />
+                </MudCardContent>
+                <MudItem xs="12">
+                    <MudPaper Class="d-flex flex-wrap justify-center" Elevation="0">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => ErrorCheckandSaveReview())">Add Review</MudButton>
+                        <MudSpacer />
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="ClearForm">Clear</MudButton>
+                        <MudSpacer />
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary">
+                            <MudNavLink Href="/reviewreport">
+                                View Report
+                            </MudNavLink>
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudForm>
+
+<MudPaper Class="p-4" Elevation="0">
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Success">@successMessage</MudText>
+    }
+    @foreach (var error in errors)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Error">@error</MudText>
+    }
+    @foreach (var error in errorMessages)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Error">@error</MudText>
+    }
+</MudPaper>
+
+@code {
+    private string isbn = string.Empty;
+    private string title = string.Empty;
+    private string author = string.Empty;
+    private string reviewer = string.Empty;
+    private string comment = string.Empty;
+    private RatingType rating;
+    private Review review;
+    private MudForm form;
+    private List<string> errorMessages = new List<string>();
+    private string[] errors = { };
+    private string successMessage = string.Empty;
+
+    private List<string> authorList = new List<string>
+    {
+        "Karen Miller",
+        "Cixin Liu",
+        "Adrian Tchaikovsky",
+        "John Smith"
+    };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task ErrorCheckandSaveReview()
+    {
+        try
+        {
+            review = new Review(isbn, title, author, reviewer, rating, comment);
+            string csvPath = "wwwroot/data/TestData.csv";
+            await SaveReview(review, csvPath);
+            successMessage = "Review saved successfully!";
+        }
+        catch (ArgumentException ex)
+        {
+            errors = new string[] { ex.Message };
+        }
+        catch (Exception)
+        {
+            errors = new string[] { "An error occurred while saving the review." };
+        }
+    }
+
+
+    private async Task SaveReview(Review review, string csvPath)
+    {
+        string line = $"{review}\n";
+        await File.AppendAllTextAsync(csvPath, line);
+    }
+
+    private async void ClearForm()
+    {
+        await form.ResetAsync();
+        errorMessages.Clear();
+        successMessage = string.Empty;
+    }
+
+    private Exception GetInnerException(Exception ex)
+    {
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+        return ex;
+    }
+}
